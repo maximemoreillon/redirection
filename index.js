@@ -3,15 +3,23 @@ const dotenv = require('dotenv')
 
 dotenv.config()
 
-const app = express()
-const port = process.env.EXPRESS_PORT || 80
+const {
+  EXPRESS_PORT = 80,
+  TARGET_URL,
+  WARNING,
+} = process.env
 
-app.get('/*', (req, res) => {
-  const target_url = process.env.TARGET_URL
-  if(!target_url) res.status(500).send(`TARGET_URL not set`)
-  res.redirect(target_url)
+
+const app = express()
+
+app.set('view engine', 'ejs');
+
+app.all('/*', (req, res) => {
+  if (!TARGET_URL) throw `TARGET_URL not set`
+  if (WARNING) res.render('index', { target: TARGET_URL });
+  else res.redirect(TARGET_URL)
 })
 
-app.listen(port, () => {
-  console.log(`Redirect service on :${port}`)
+app.listen(EXPRESS_PORT, () => {
+  console.log(`[Express] Listening on port ${EXPRESS_PORT}`)
 })
