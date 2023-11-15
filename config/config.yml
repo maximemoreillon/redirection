@@ -1,0 +1,4 @@
+- path: /v2/login
+  target: http://10.115.1.100:30097/v2/auth/login
+- path: /v2/whoami
+  target: http://10.115.1.100:30097/v2/users/self
