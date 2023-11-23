@@ -3,7 +3,7 @@ stages:
 
 image: moreillon/ci-dind
 services:
-  - name: docker:20.0.4-dind
+  - name: docker:24.0.7-dind
 
 variables:
   APPLICATION_NAME: redirection
