@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -9,18 +10,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-
-type Route struct {
-	Path string "yaml:Path"
-	Target string "yaml:Target"
+type Config []struct {
+	Path string
+	Target string
 }
-
-type Config []Route
 
 
 func main() {
 
-	http.Handle("/metrics", promhttp.Handler())
+	mux := http.NewServeMux()
+
+	mux.Handle("/metrics", promhttp.Handler())
 	
 	filename, _ := filepath.Abs("./config/config.yml")
 	yamlFile, err := os.ReadFile(filename)
@@ -36,13 +36,11 @@ func main() {
 	}
 
 	for _, config := range config {
-		http.HandleFunc(config.Path, func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, config.Target, 301)
-		})
-	}
+		fmt.Println(fmt.Sprintf("Registering redirection for %s to %s", config.Path, config.Target))
+		mux.Handle(config.Path, http.RedirectHandler(config.Target, 301))
+	}	
 
-	// TODO: create handlers in a for loop
+	fmt.Println("Redirection service listening on port :7070")
+	http.ListenAndServe(":7070", mux)
 	
-
-	http.ListenAndServe(":7070", nil)
 }
