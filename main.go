@@ -37,7 +37,7 @@ func main() {
 
 	for _, config := range config {
 		fmt.Println(fmt.Sprintf("Registering redirection for %s to %s", config.Path, config.Target))
-		mux.Handle(config.Path, http.RedirectHandler(config.Target, 301))
+		mux.Handle(config.Path, http.RedirectHandler(config.Target, 307))
 	}	
 
 	fmt.Println("Redirection service listening on port :7070")
