@@ -16,7 +16,7 @@ type statusRecorder struct {
 }
 
 func MeasureResponseDuration(next http.Handler) http.Handler {
-	buckets := []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}
+	buckets := []float64{.003, .03, .1, .3, 1.5, 10}
 
 	responseTimeHistogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		// Namespace: "namespace",
