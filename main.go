@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
-	configparsing "redirection/configParsing"
+	"redirection/configparsing"
 	"redirection/instrumentation"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
