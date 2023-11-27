@@ -24,12 +24,6 @@ type statusRecorder struct {
 	statusCode int
 }
 
-
-// func (rec *statusRecorder) WriteHeader(statusCode int) {
-// 	rec.statusCode = statusCode
-// 	rec.ResponseWriter.WriteHeader(statusCode)
-// }
-
 func measureResponseDuration(next http.Handler) http.Handler {
 	buckets := []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10}
 
