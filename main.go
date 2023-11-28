@@ -7,6 +7,7 @@ import (
 	"redirection/instrumentation"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/cors"
 )
 
 
@@ -35,6 +36,7 @@ func main() {
 
 	fmt.Println("Redirection service listening on port :7070")
 	mux.Handle("/", wrappedMux)
-	http.ListenAndServe(":7070", mux)
+	corsHandler := cors.Default().Handler(mux)
+	http.ListenAndServe(":7070", corsHandler)
 	
 }
