@@ -3,16 +3,26 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"redirection/configparsing"
 	"redirection/instrumentation"
 
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 )
 
 
+func getPort() string {
+
+	envPort := os.Getenv("PORT")
+	if len(envPort) != 0 { return fmt.Sprintf(":%s", envPort) }
+	return ":80"
+}
 
 func main() {
+	
+	godotenv.Load()
 	
 	config := configparsing.ParseConfigFile()
 
