@@ -20,12 +20,11 @@ func redirectWithEnv(mux *http.ServeMux, targetUrl string) {
 		mux.Handle("/", http.RedirectHandler(targetUrl, http.StatusTemporaryRedirect))
 
 	} else {
-		fmt.Printf("Show warning is set to %s\n", showWarning)
+		fmt.Printf("Show warning is set\n")
 
 		warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
 			index(targetUrl + r.URL.String()).Render(context.Background(), w)
 		})
-
 
 		mux.Handle("/", warningHandler)
 
