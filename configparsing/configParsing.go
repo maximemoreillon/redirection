@@ -11,6 +11,7 @@ import (
 type Config []struct {
 	Path string
 	Target string
+	Warn bool
 }
 
 
@@ -29,4 +30,3 @@ func ParseConfigFile () Config {
 
 	return config
 }
-	
