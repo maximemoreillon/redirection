@@ -72,11 +72,10 @@ func main() {
 	fmt.Println("Redirection service")
 
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+	redirectionMux := http.NewServeMux()
 
 	targetUrl := os.Getenv("REDIRECTION_TARGET_URL")
 	
-	redirectionMux := http.NewServeMux()
 
 	if targetUrl != "" {
 		fmt.Printf("Using configuration from env, target URL is %s \n", targetUrl)
@@ -86,8 +85,16 @@ func main() {
 		redirectWithYamlConfig(redirectionMux, targetUrl)
 	}
 
-	instrumentedMux := instrumentation.MeasureResponseDuration(redirectionMux)
-	mux.Handle("/", instrumentedMux)
+	if os.Getenv("REDIRECTION_EXPORT_METRICS") != "" {
+		fmt.Printf("Exporting Prometheus metrics\n")
+		mux.Handle("/metrics", promhttp.Handler())
+		instrumentedMux := instrumentation.MeasureResponseDuration(redirectionMux)
+		mux.Handle("/", instrumentedMux)
+	} else {
+		mux.Handle("/", redirectionMux)
+	}
+
+	
 	muxWithCors := cors.Default().Handler(mux)
 
 	port := getPort()
