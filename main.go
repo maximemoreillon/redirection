@@ -6,9 +6,20 @@ import (
 	"net/http"
 	"os"
 	"redirection/configparsing"
+	"redirection/instrumentation"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 )
+
+func getPort() string {
+	envPort := os.Getenv("PORT")
+	if envPort != "" { 
+		return fmt.Sprintf(":%s", envPort) 
+	} else {
+		return ":80"
+	}
+}
 
 func redirectWithEnv(mux *http.ServeMux, targetUrl string) {
 
@@ -61,21 +72,26 @@ func main() {
 	fmt.Println("Redirection service")
 
 	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
 
 	targetUrl := os.Getenv("REDIRECTION_TARGET_URL")
 	
+	redirectionMux := http.NewServeMux()
 
 	if targetUrl != "" {
 		fmt.Printf("Using configuration from env, target URL is %s \n", targetUrl)
-		redirectWithEnv(mux, targetUrl)
+		redirectWithEnv(redirectionMux, targetUrl)
 	} else {
 		fmt.Printf("Using configuration from config.yml \n")
-		redirectWithYamlConfig(mux, targetUrl)
+		redirectWithYamlConfig(redirectionMux, targetUrl)
 	}
 
+	instrumentedMux := instrumentation.MeasureResponseDuration(redirectionMux)
+	mux.Handle("/", instrumentedMux)
 	muxWithCors := cors.Default().Handler(mux)
 
-	fmt.Println("[HTTP] Server listening on port :7070")
-	http.ListenAndServe(":7070", muxWithCors)
+	port := getPort()
+	fmt.Printf("[HTTP] Server listening on port %s\n",port)
+	http.ListenAndServe(port, muxWithCors)
 	
 }
