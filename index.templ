@@ -1,0 +1,13 @@
+package main
+
+templ index(url string) {
+	<html>
+		<head>
+			<title>Redirection</title>
+		</head>
+		<body>
+			<h1>Redirection</h1>
+			<p>This content has moved to the following url: <a href={ templ.URL(url) }>{url}</a></p>
+		</body>
+	</html>
+}

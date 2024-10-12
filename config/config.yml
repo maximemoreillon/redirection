@@ -1,5 +1,6 @@
-# Login
 - path: /google
   target: https://google.com
+  warn: true
 - path: /moreillon
   target: https://maximemoreillon.com
+  warn: true

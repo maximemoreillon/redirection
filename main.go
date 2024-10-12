@@ -1,52 +1,82 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"redirection/configparsing"
-	"redirection/instrumentation"
 
-	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 )
 
+func redirectWithEnv(mux *http.ServeMux, targetUrl string) {
 
-func getPort() string {
+	showWarning := os.Getenv("REDIRECTION_WARNING")
 
-	envPort := os.Getenv("PORT")
-	if len(envPort) != 0 { return fmt.Sprintf(":%s", envPort) }
-	return ":80"
+
+	if showWarning == "" {
+		fmt.Printf("Show warning is NOT SET \n")
+		mux.Handle("/", http.RedirectHandler(targetUrl, http.StatusTemporaryRedirect))
+
+	} else {
+		fmt.Printf("Show warning is set to %s\n", showWarning)
+
+		warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+			index(targetUrl + r.URL.String()).Render(context.Background(), w)
+		})
+
+
+		mux.Handle("/", warningHandler)
+
+	}
 }
 
-func main() {
-	
-	godotenv.Load()
-	
+func redirectWithYamlConfig(mux *http.ServeMux, targetUrl string) {
 	config := configparsing.ParseConfigFile()
 
-	// Main mux, serving metrics and subMux
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
-
-	// Sub Mux for redirection requests, metrics logged with Prometheus
-	subMux := http.NewServeMux()
 	for _, config := range config {
-		fmt.Println(fmt.Sprintf("Registering redirection for %s to %s", config.Path, config.Target))
+		fmt.Printf("Registering redirection for %s to %s\n", config.Path, config.Target)
 
 		path := config.Path
 		target := config.Target
+		warn := config.Warn
 
-		// Not Instrumented mux because otherwise multiple registration
-		subMux.Handle(path, http.RedirectHandler(target, 307))
+		if warn {
+			warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+				index(target + r.URL.String()).Render(context.Background(), w)
+			})
+			mux.Handle(path, warningHandler)
+	
+		} else {
+			
+			mux.Handle("/", http.RedirectHandler(targetUrl, http.StatusTemporaryRedirect))
+			
+		}
+	}
+}
+
+
+func main() {
+
+	fmt.Println("Redirection service")
+
+	mux := http.NewServeMux()
+
+	targetUrl := os.Getenv("REDIRECTION_TARGET_URL")
+	
+
+	if targetUrl != "" {
+		fmt.Printf("Using configuration from env, target URL is %s \n", targetUrl)
+		redirectWithEnv(mux, targetUrl)
+	} else {
+		fmt.Printf("Using configuration from config.yml \n")
+		redirectWithYamlConfig(mux, targetUrl)
 	}
 
-	instrumentedMux := instrumentation.MeasureResponseDuration(subMux)
-	mux.Handle("/", instrumentedMux)
-	corsHandler := cors.Default().Handler(mux)
+	muxWithCors := cors.Default().Handler(mux)
 
-	http.ListenAndServe(":7070", corsHandler)
-	fmt.Println("Redirection service listening on port :7070")
+	fmt.Println("[HTTP] Server listening on port :7070")
+	http.ListenAndServe(":7070", muxWithCors)
 	
 }
