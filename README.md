@@ -10,15 +10,18 @@ To redirect users directly with a 307 code:
 
 ```
 docker run \
-  -e REDIRECTION_TARGET_URL=http://new.example.com
+  -e REDIRECTION_TARGET_URL=http://new.example.com \
+  moreillon/redirection
 ```
 
 To show users a warning that the content has been moved:
 
 ```
 docker run \
-  -e REDIRECTION_TARGET_URL=http://new.example.com
-  -e REDIRECTION_WARNING=true
+  -e REDIRECTION_TARGET_URL=http://new.example.com \
+  -e REDIRECTION_WARNING=true \
+  moreillon/redirection
+
 ```
 
 ## Using configuration file
@@ -31,4 +34,12 @@ When the REDIRECTION_TARGET_URL environment variable is not set, configuration c
   warn: true
 - path: /example
   target: https://example.com
+```
+
+In this case, the command becomes:
+
+```
+docker run \
+  -v "$(pwd)"/config.yml:/app/config/config.yml \
+  moreillon/redirection
 ```
