@@ -1,0 +1,20 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 10em;
+  gap: 1em;
+  font-size: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+
+h1,
+p {
+  margin: 0;
+}
+img {
+  max-width: 6rem;
+  filter: opacity(0.75);
+}

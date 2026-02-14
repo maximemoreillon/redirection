@@ -21,50 +21,24 @@ func getPort() string {
 	}
 }
 
-func redirectWithEnv(mux *http.ServeMux, targetUrl string) {
 
-	showWarning := os.Getenv("REDIRECTION_WARNING")
-
-
-	if showWarning == "" {
-		fmt.Printf("Show warning is NOT SET \n")
-		mux.Handle("/", http.RedirectHandler(targetUrl, http.StatusTemporaryRedirect))
-
-	} else {
-		fmt.Printf("Show warning is set\n")
-
-		warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-			index(targetUrl + r.URL.String()).Render(context.Background(), w)
-		})
-
-		mux.Handle("/", warningHandler)
-
-	}
-}
-
-func redirectWithYamlConfig(mux *http.ServeMux, targetUrl string) {
-	config := configparsing.ParseConfigFile()
+func registerConfigToMux(mux *http.ServeMux, config configparsing.Config) {
 
 	for _, config := range config {
-		fmt.Printf("Registering redirection for %s to %s\n", config.Path, config.Target)
-
-		path := config.Path
-		target := config.Target
-		warn := config.Warn
-
-		if warn {
+		fmt.Printf("Registering redirection for %s to %s ", config.Path, config.Target)
+		if config.Warn {
+			fmt.Print("with warning page\n")
 			warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-				index(target + r.URL.String()).Render(context.Background(), w)
+				index(config.Target + r.URL.String()).Render(context.Background(), w)
 			})
-			mux.Handle(path, warningHandler)
-	
+			mux.Handle(config.Path, warningHandler)
 		} else {
-			
-			mux.Handle("/", http.RedirectHandler(targetUrl, http.StatusTemporaryRedirect))
-			
+			fmt.Print("without warning page\n")
+			mux.Handle("/", http.RedirectHandler(config.Target, http.StatusTemporaryRedirect))
 		}
 	}
 }
+
 
 
 func main() {
@@ -74,27 +48,21 @@ func main() {
 	mux := http.NewServeMux()
 	redirectionMux := http.NewServeMux()
 
-	targetUrl := os.Getenv("REDIRECTION_TARGET_URL")
+	config := configparsing.ParseConfig()
+
+	registerConfigToMux(redirectionMux, config)
 	
-
-	if targetUrl != "" {
-		fmt.Printf("Using configuration from env, target URL is %s \n", targetUrl)
-		redirectWithEnv(redirectionMux, targetUrl)
-	} else {
-		fmt.Printf("Using configuration from config.yml \n")
-		redirectWithYamlConfig(redirectionMux, targetUrl)
-	}
-
 	if os.Getenv("REDIRECTION_EXPORT_METRICS") != "" {
 		fmt.Printf("Exporting Prometheus metrics\n")
 		mux.Handle("/metrics", promhttp.Handler())
-		instrumentedMux := instrumentation.MeasureResponseDuration(redirectionMux)
-		mux.Handle("/", instrumentedMux)
+		mux.Handle("/", instrumentation.MeasureResponseDuration(redirectionMux))
 	} else {
 		mux.Handle("/", redirectionMux)
 	}
 
-	
+	fs := http.FileServer(http.Dir("./static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	muxWithCors := cors.Default().Handler(mux)
 
 	port := getPort()

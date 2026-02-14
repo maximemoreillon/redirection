@@ -29,11 +29,10 @@ docker run \
 When the REDIRECTION_TARGET_URL environment variable is not set, configuration can be done using a file names `config.yml` such as the following:
 
 ```
-- path: /google
-  target: https://google.com
-  warn: true
-- path: /example
+# Will redirect to https://example.com/abc
+- path: /abc
   target: https://example.com
+  warn: true
 ```
 
 In this case, the command becomes:
@@ -43,3 +42,5 @@ docker run \
   -v "$(pwd)"/config.yml:/app/config/config.yml \
   moreillon/redirection
 ```
+
+## development
