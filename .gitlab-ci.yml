@@ -12,8 +12,6 @@ variables:
 
 build:
   stage: build
-  tags:
-    - dind
   only:
     - master
   before_script:

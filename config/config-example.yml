@@ -1,5 +1,5 @@
 # Login
-- path: /google
+- path: /google/
   target: https://google.com
 - path: /moreillon
   target: https://maximemoreillon.com
