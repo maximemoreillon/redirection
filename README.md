@@ -19,7 +19,7 @@ To show users a warning that the content has been moved:
 ```
 docker run \
   -e REDIRECTION_TARGET_URL=http://new.example.com \
-  -e REDIRECTION_WARNING=true \
+  -e REDIRECTION_WARN=true \
   moreillon/redirection
 
 ```
@@ -44,3 +44,15 @@ docker run \
 ```
 
 ## development
+
+Installing dependencies:
+
+```
+go mod download
+```
+
+Running :
+
+```
+bash ./run.sh
+```

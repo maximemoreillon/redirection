@@ -7,6 +7,7 @@ import (
 	"os"
 	"redirection/configparsing"
 	"redirection/instrumentation"
+	"strings"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
@@ -26,16 +27,24 @@ func registerConfigToMux(mux *http.ServeMux, config configparsing.Config) {
 
 	for _, config := range config {
 		fmt.Printf("Registering redirection for %s to %s ", config.Path, config.Target)
-		if config.Warn {
-			fmt.Print("with warning page\n")
-			warningHandler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+
+		
+		handler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+
+			userAgent := r.Header.Get("User-Agent")
+			isBrowser := strings.Contains(userAgent, "Mozilla") && (strings.Contains(userAgent, "Chrome") || strings.Contains(userAgent, "Safari") || strings.Contains(userAgent, "Firefox"))
+
+			if config.Warn && isBrowser {
 				index(config.Target + r.URL.String()).Render(context.Background(), w)
-			})
-			mux.Handle(config.Path, warningHandler)
-		} else {
-			fmt.Print("without warning page\n")
-			mux.Handle("/", http.RedirectHandler(config.Target, http.StatusTemporaryRedirect))
-		}
+			} else {
+				// TODO: figure out what redirect to use
+				// 301 StatusMovedPermanently
+				// 307 StatusTemporaryRedirect (preserves method)
+				// 308 StatusPermanentRedirect (preserves method)
+				http.Redirect(w, r, config.Target, http.StatusTemporaryRedirect)
+			}
+		})
+		mux.Handle(config.Path, handler)
 	}
 }
 
