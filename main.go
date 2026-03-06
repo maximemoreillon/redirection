@@ -26,7 +26,7 @@ func getPort() string {
 func registerConfigToMux(mux *http.ServeMux, config configparsing.Config) {
 
 	for _, config := range config {
-		fmt.Printf("Registering redirection for %s to %s ", config.Path, config.Target)
+		fmt.Printf("Registering redirection for %s to %s \n", config.Path, config.Target)
 
 		
 		handler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
