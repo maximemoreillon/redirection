@@ -3,6 +3,8 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*'
 
 jobs:
   build-and-push:
@@ -20,8 +22,9 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/openkintai
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable={{is_default_branch}}
             type=sha
+            type=ref,event=tag
 
       - uses: docker/build-push-action@v6
         with:
