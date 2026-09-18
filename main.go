@@ -41,7 +41,7 @@ func registerConfigToMux(mux *http.ServeMux, config configparsing.Config) {
 				// 301 StatusMovedPermanently
 				// 307 StatusTemporaryRedirect (preserves method)
 				// 308 StatusPermanentRedirect (preserves method)
-				http.Redirect(w, r, config.Target, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, config.Target+r.URL.String(), http.StatusTemporaryRedirect)
 			}
 		})
 		mux.Handle(config.Path, handler)
