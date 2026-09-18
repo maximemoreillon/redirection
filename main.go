@@ -37,10 +37,9 @@ func registerConfigToMux(mux *http.ServeMux, config configparsing.Config) {
 			if config.Warn && isBrowser {
 				index(config.Target + r.URL.String()).Render(context.Background(), w)
 			} else {
-				// TODO: figure out what redirect to use
-				// 301 StatusMovedPermanently
-				// 307 StatusTemporaryRedirect (preserves method)
-				// 308 StatusPermanentRedirect (preserves method)
+				// 307 rather than 301/308: non-browser clients may be APIs issuing
+				// non-GET requests, and 307 is the only redirect status that both
+				// preserves the method and doesn't get cached as permanent.
 				http.Redirect(w, r, config.Target+r.URL.String(), http.StatusTemporaryRedirect)
 			}
 		})
