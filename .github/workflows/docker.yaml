@@ -4,7 +4,7 @@ on:
       - main
       - master
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-and-push:
@@ -20,7 +20,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/openkintai
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/redirection
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
