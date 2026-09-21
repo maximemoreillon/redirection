@@ -14,6 +14,11 @@ type statusRecorder struct {
 	statusCode int
 }
 
+func (r *statusRecorder) WriteHeader(code int) {
+	r.statusCode = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
 func MeasureResponseDuration(next http.Handler) http.Handler {
 	buckets := []float64{.003, .03, .1, .3, 1.5, 10}
 
@@ -35,7 +40,12 @@ func MeasureResponseDuration(next http.Handler) http.Handler {
 
 		duration := time.Since(start)
 		statusCode := strconv.Itoa(rec.statusCode)
-		route := r.URL.Path
+		// r.Pattern is set by the inner mux to the matched config path, which keeps
+		// label cardinality bounded by the config rather than by requested URLs.
+		route := r.Pattern
+		if route == "" {
+			route = "unmatched"
+		}
 		responseTimeHistogram.WithLabelValues(route, r.Method, statusCode).Observe(duration.Seconds())
 	})
 }
